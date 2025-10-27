@@ -3,7 +3,7 @@
  * Enterprise-level encryption, hashing, and security utilities
  * 
  * @module utils/crypto
- * @version 3.0.0
+ * @version 3.0.1
  * @license MIT
  * 
  * ============================================================================
@@ -420,7 +420,7 @@ export const hexDecode = (data) => {
 };
 
 // ============================================================================
-// TOTP (Time-based One-Time Password)
+// TOTP (Time-based One-Time Password) - FIXED
 // ============================================================================
 
 /**
@@ -433,18 +433,19 @@ export const generateTOTPSecret = () => {
 };
 
 /**
- * Generate TOTP code
+ * Generate TOTP code (FIXED)
  * @param {string} secret - TOTP secret
  * @param {number} window - Time window (30s default)
  * @returns {string} 6-digit code
  */
 export const generateTOTP = (secret, window = 30) => {
-  const epoch = Math.floor(Date.now() / 1000 / window);
+  let epoch = Math.floor(Date.now() / 1000 / window);
   const buffer = Buffer.alloc(8);
   
+  // FIXED: Properly shift and assign
   for (let i = 7; i >= 0; i--) {
     buffer[i] = epoch & 0xff;
-    epoch >> 8;
+    epoch = epoch >> 8; // ✅ FIXED: Now properly assigns back
   }
   
   const hmacResult = crypto.createHmac('sha1', Buffer.from(secret, 'base32')).update(buffer).digest();
@@ -460,7 +461,7 @@ export const generateTOTP = (secret, window = 30) => {
 };
 
 /**
- * Verify TOTP code
+ * Verify TOTP code (FIXED)
  * @param {string} token - TOTP code
  * @param {string} secret - TOTP secret
  * @param {number} window - Time window
@@ -468,18 +469,28 @@ export const generateTOTP = (secret, window = 30) => {
  * @returns {boolean} Is valid
  */
 export const verifyTOTP = (token, secret, window = 30, step = 1) => {
-  const epoch = Math.floor(Date.now() / 1000 / window);
+  const currentEpoch = Math.floor(Date.now() / 1000 / window);
   
   for (let i = -step; i <= step; i++) {
-    const testEpoch = epoch + i;
+    let testEpoch = currentEpoch + i;
     const buffer = Buffer.alloc(8);
     
+    // FIXED: Properly shift and assign
     for (let j = 7; j >= 0; j--) {
       buffer[j] = testEpoch & 0xff;
-      testEpoch >> 8;
+      testEpoch = testEpoch >> 8; // ✅ FIXED: Now properly assigns back
     }
     
-    const expectedToken = generateTOTP(secret, window);
+    const hmacResult = crypto.createHmac('sha1', Buffer.from(secret, 'base32')).update(buffer).digest();
+    const offset = hmacResult[hmacResult.length - 1] & 0xf;
+    const code = (
+      ((hmacResult[offset] & 0x7f) << 24) |
+      ((hmacResult[offset + 1] & 0xff) << 16) |
+      ((hmacResult[offset + 2] & 0xff) << 8) |
+      (hmacResult[offset + 3] & 0xff)
+    );
+    
+    const expectedToken = (code % 1000000).toString().padStart(6, '0');
     
     if (token === expectedToken) {
       return true;

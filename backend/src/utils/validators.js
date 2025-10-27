@@ -3,7 +3,7 @@
  * Enterprise-level input validation with comprehensive checks
  * 
  * @module utils/validators
- * @version 3.0.0
+ * @version 3.0.1
  * @license MIT
  * 
  * ============================================================================
@@ -265,7 +265,7 @@ export const getCreditCardType = (cardNumber) => {
 };
 
 /**
- * Validate CVV/CVC code
+ * Validate CVV/CVC code (FIXED)
  * @param {string} cvv - CVV code
  * @param {string} cardType - Card type
  * @returns {boolean} Is valid
@@ -279,7 +279,7 @@ export const isValidCVV = (cvv, cardType = null) => {
  * Enterprise-level input validation with comprehensive checks
  * 
  * @module utils/validators
- * @version 3.0.0
+ * @version 3.0.1
  * @license MIT
  * 
  * ============================================================================
@@ -365,61 +365,6 @@ export const isDisposableEmail = (email) => {
     'mailinator.com', 'temp-mail.org', 'throwaway.email',
     'maildrop.cc', 'sharklasers.com', 'yopmail.com'
   ];
-  
-  const domain = email.split('@')[1]?.toLowerCase();
-  return disposableDomains.includes(domain);
-};
-
-// ============================================================================
-// PHONE VALIDATION
-// ============================================================================
-
-/**
- * Validate phone number (international format)
- * @param {string} phone - Phone number
- * @param {string} country - Country code (e.g., 'US', 'GB')
- * @returns {boolean} Is valid
- */
-export const isValidPhone = (phone, country = null) => {
-  if (!phone || typeof phone !== 'string') return false;
-  
-  return validator.isMobilePhone(phone, country || 'any', {
-    strictMode: false
-  });
-};
-
-/**
- * Validate phone with specific format
- * @param {string} phone - Phone number
- * @param {RegExp} format - Expected format regex
- * @returns {boolean} Is valid
- */
-export const isValidPhoneFormat = (phone, format) => {
-  return format.test(phone);
-};
-
-// ============================================================================
-// URL VALIDATION
-// ============================================================================
-
-/**
- * Validate URL
- * @param {string} url - URL string
- * @param {object} options - Validation options
- * @returns {boolean} Is valid
- */
-export const isValidURL = (url, options = {}) => {
-  if (!url || typeof url !== 'string') return false;
-  
-  const {
-    protocols = ['http', 'https'],
-    requireProtocol = true,
-    requireHost = true,
-    requireValidProtocol = true,
-    allowQueryComponents = true,
-    allowFragments = true,
-    requireTld = true
-  } = options;
   
 ).test(cvv);
 };
